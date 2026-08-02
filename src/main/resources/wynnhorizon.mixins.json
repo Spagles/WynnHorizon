@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.wynnhorizon.mixin",
+  "plugin": "dev.wynnhorizon.mixin.VoxyMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "RenderDistanceTrackerAccessor",
+    "VoxyRenderSystemAccessor",
+    "MixinRenderDistanceTracker"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

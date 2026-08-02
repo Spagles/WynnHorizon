@@ -1,0 +1,105 @@
+plugins {
+    // Plain 'fabric-loom' (not 'net.fabricmc.fabric-loom'), because in this
+    // Loom version that's a distinct "no-remap" marker plugin that force-
+    // disables obfuscation/remapping project-wide - correct for Voxy's own
+    // build.gradle, which now targets an unobfuscated MC version, but wrong
+    // here: 1.21.11 genuinely ships obfuscated (verified directly against
+    // the downloaded client jar's class names), so this mod needs the real
+    // remapping-capable plugin.
+    id 'fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    // Voxy is not on a normal Maven repo - Modrinth exposes its hosted files
+    // through a Maven-compatible endpoint, which is what lets us pull it in
+    // as a normal Gradle dependency below instead of needing a jar in libs/.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    // 1.21.11 ships obfuscated (verified directly against the downloaded
+    // client jar's class names), so - unlike Voxy's own current build.gradle,
+    // which targets a later unobfuscated MC version - we need a real
+    // mappings() call and the mod* remap configurations below.
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    // The all-in-one fabric-api artifact alone isn't enough to compile
+    // against these three specific modules' classes in this (real, remapped)
+    // obfuscated pipeline - confirmed by hitting "cannot find symbol" on
+    // ClientCommands with only the line above. Voxy's own 1.21.11-era
+    // build.gradle needed the same explicit fabricApi.module(...) treatment
+    // for fabric-command-api-v2, for what looks like the same underlying
+    // reason, so it's not just us.
+    modImplementation fabricApi.module("fabric-rendering-v1", project.fabric_api_version)
+    modImplementation fabricApi.module("fabric-lifecycle-events-v1", project.fabric_api_version)
+    modImplementation fabricApi.module("fabric-command-api-v2", project.fabric_api_version)
+
+    // Compile-only, plain (not modCompileOnly) - never bundled into our jar
+    // (see README), and deliberately NOT processed by Loom's mod-dependency
+    // pipeline: the published voxy-0.2.16-beta+1.21.11 jar's bundled
+    // accessWidener is stuck in the 'official' namespace (verified directly;
+    // looks like a real quirk in whatever produced that specific historical
+    // release), which makes Loom's AW merge step fail outright for ANY mod*
+    // configuration, on every Loom version tried. We don't need Loom to
+    // process Voxy's access widener at all - mixins reach Voxy's private
+    // members via ASM, not Java-level widened access - so a plain
+    // `compileOnly` (classes on the compile classpath, nothing merged, no
+    // remap, not bundled) sidesteps the problem entirely. See README
+    // "Testing in a dev environment" for how to still get Voxy into
+    // `runClient` despite it no longer being a runtime dependency here.
+    compileOnly "maven.modrinth:voxy:${project.voxy_version}"
+
+    // Soft dependency for the in-game config screen: normal, well-formed
+    // Fabric mods (unlike Voxy), so plain modImplementation works fine -
+    // remapped and available in runClient, never bundled into our jar.
+    // ModMenuIntegration is only ever touched by ModMenu's own entrypoint
+    // lookup, so the mod stays fully functional (JSON config + chat
+    // commands) if a player doesn't have either installed.
+    modImplementation "maven.modrinth:modmenu:${project.modmenu_version}"
+    modImplementation "maven.modrinth:cloth-config:${project.cloth_config_version}"
+}
+
+def targetJavaVersion = 21
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = "UTF-8"
+    it.options.release = targetJavaVersion
+}
+
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+processResources {
+    def props = [
+            "version"           : project.version,
+            "minecraft_version" : project.minecraft_version,
+            "loader_version"    : project.loader_version,
+            "voxy_version"      : project.voxy_version,
+    ]
+    inputs.properties(props)
+    filesMatching("fabric.mod.json") {
+        expand(props)
+    }
+}

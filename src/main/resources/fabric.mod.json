@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "wynnhorizon",
+  "version": "${version}",
+  "name": "WynnHorizon",
+  "description": "Keeps Voxy's LOD terrain force-loaded across a fixed map bounding box (e.g. the Wynncraft continent) instead of a pure player-radius, while still using a small fallback radius for everything else (event areas, void, etc).",
+  "authors": [
+    "WynnHorizon"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.wynnhorizon.WynnHorizonMod"
+    ],
+    "modmenu": [
+      "dev.wynnhorizon.modmenu.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "wynnhorizon.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "${minecraft_version}",
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*"
+  },
+  "recommends": {
+    "voxy": "*",
+    "modmenu": "*",
+    "cloth-config": "*"
+  },
+  "custom": {
+    "wynnhorizon:tested_voxy_version": "${voxy_version}"
+  }
+}

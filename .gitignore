@@ -1,0 +1,30 @@
+# Gradle
+.gradle/
+build/
+out/
+classes/
+
+# Fabric Loom dev run (created by ./gradlew runClient/runServer - full local
+# Minecraft instance including saves, options, and logs, never project source)
+run/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Claude Code tooling state - not project source
+.claude/
+
+# Runtime logs - may contain personal account/chat data, never commit these
+*.log
