@@ -66,6 +66,7 @@ public final class VoxyBridge {
     public static void tick() {
         BoundsConfig cfg = BoundsConfig.INSTANCE;
         if (!cfg.enabled) {
+            lastForceLoadedSystem = null;
             return;
         }
 
@@ -84,13 +85,18 @@ public final class VoxyBridge {
 
     /** Re-runs the force-load pass immediately, e.g. right after the box is edited via command. */
     public static boolean forceReload() {
+        BoundsConfig cfg = BoundsConfig.INSTANCE;
+        if (!cfg.enabled) {
+            lastForceLoadedSystem = null;
+            return false;
+        }
         VoxyRenderSystem rs = getRenderSystemOrNull();
         if (rs == null) {
             return false;
         }
         forceLoadBoundingBox(rs);
         lastForceLoadedSystem = rs;
-        applyDistances(rs, BoundsConfig.INSTANCE);
+        applyDistances(rs, cfg);
         return true;
     }
 
