@@ -71,7 +71,9 @@ public final class BoundsConfig {
     }
 
     public boolean isBlockInsideBox(double x, double z) {
-        return x >= this.minX && x <= this.maxX && z >= this.minZ && z <= this.maxZ;
+        int blockX = (int) Math.floor(x);
+        int blockZ = (int) Math.floor(z);
+        return blockX >= this.minX && blockX <= this.maxX && blockZ >= this.minZ && blockZ <= this.maxZ;
     }
 
     /** Voxy top-level nodes are 512 blocks (2^9) wide; block coords convert with a plain {@code >> 9}. */
