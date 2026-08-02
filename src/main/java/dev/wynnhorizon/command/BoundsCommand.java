@@ -34,6 +34,9 @@ public final class BoundsCommand {
         BoundsConfig cfg = BoundsConfig.INSTANCE;
         cfg.enabled = !cfg.enabled;
         cfg.save();
+        if (VoxyBridge.isVoxyLoaded()) {
+            VoxyBridge.forceReload();
+        }
         ctx.getSource().sendFeedback(Component.literal("WynnHorizon " + (cfg.enabled ? "enabled" : "disabled")));
         return 1;
     }
